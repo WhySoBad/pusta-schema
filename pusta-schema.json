@@ -1,0 +1,247 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "type": "object",
+    "additionalProperties": false,
+    "defaultSnippets": [
+        {
+            "label": "Metadata",
+            "description": "Create basic metadata for the module",
+            "body": {
+                "name": "${1:${TM_DIRECTORY/.*[\\/](.*)$/$1/}}",
+                "description": "${2:Description for module $1}",
+                "author": "$3",
+                "version": "${4:0.1}"
+            }
+        },
+        {
+            "label": "Bootstrap",
+            "description": "Bootstrap a basic module configuration",
+            "body": {
+                "name": "${1:${TM_DIRECTORY/.*[\\/](.*)$/$1/}}",
+                "description": "${2:Description for module $1}",
+                "author": "$3",
+                "version": "${4:0.1}",
+                "provides": "${5:$1}",
+                "jobs": [
+                    {
+                        "title": "$6",
+                        "job": {
+                            "type": "${7|command,script,file,package|}",
+                            "${8|names,install,uninstall,reinstall,show_output,file,location,link,root|}": "$9"
+                        }
+                    }
+                ]
+            }
+        }
+    ],
+    "properties": {
+        "name": {
+            "description": "Name of the module which is used for identification. In the best case this is one word which you can remember since it's used for installing, updating and removing the module",
+            "type": "string"
+        },
+        "description": {
+            "description": "Description of what this module does. Your future self will thank you for this",
+            "type": "string"
+        },
+        "author": {
+            "description": "Author of the module. This can be useful when installing modules from foreign people's repositories",
+            "type": "string"
+        },
+        "version": {
+            "description": "Version of the model. The version doesn't have to follow SemVer guidelines since it can be any string or number",
+            "oneOf": [
+                { "type": "string" },
+                { "type": "number" }
+            ]
+        },
+        "alias": {
+            "description": "An alternative name under which the module can be installed",
+            "type": "string"
+        },
+        "provides": {
+            "description": "An identifier to which other packages can depend. In some cases multiple modules provide the same identifier similar when you have a nightly version and a production version of an application - both listen to the same command and can't be installed at the same time ",
+            "type": "string"
+        },
+        "depends": {
+            "description": "A whitespace separated list of modules to which this module depends. Those modules are installed prior to installing this module",
+            "type": "string"
+        },
+        "jobs": {
+            "description": "A list of jobs which are run after another",
+            "type": "array",
+            "items": {
+                "type": "object",
+                "defaultSnippets": [
+                    {
+                        "label": "Command",
+                        "description": "Bootstrap a basic command job",
+                        "body": {
+                            "title": "${1:Command job}",
+                            "job": {
+                                "type": "command",
+                                "install": "$2"                            
+                            }
+                        }
+                    },
+                    {
+                        "label": "Script",
+                        "description": "Bootstrap a basic script job",
+                        "body": {
+                            "title": "${1:Script job}",
+                            "job": {
+                                "type": "script",
+                                "install": "$2"                            
+                            }
+                        }
+                    },
+                    {
+                        "label": "File",
+                        "description": "Bootstrap a basic file job",
+                        "body": {
+                            "title": "${1:File job}",
+                            "job": {
+                                "type": "file",
+                                "file": "$2",
+                                "location": "$3" 
+                            }
+                        }
+                    },
+                    {
+                        "label": "Package",
+                        "description": "Bootstrap a basic package job",
+                        "body": {
+                            "title": "${1:Package job}",
+                            "job": {
+                                "type": "package",
+                                "names": "$2"
+                            }
+                        }
+                    }
+                ],
+                "properties": {
+                    "title": {
+                        "description": "Short description of what this job does. When omitted a default auto-evaluated text will be printed instead on execution",
+                        "type": "string"
+                    },
+                    "job": {
+                        "type": "object",
+                        "properties": {
+                            "type": {
+                                "description": "Type of the job which defines its capabilities",
+                                "type": "string",
+                                "enum": [
+                                    "command",
+                                    "package",
+                                    "script",
+                                    "file"
+                                ]
+                            }
+                        },
+                        "oneOf": [
+                            {
+                                "properties": {
+                                    "type": { "enum": ["command"] },
+                                    "install": { 
+                                        "description": "Command which is run when the module is installed",
+                                        "type": "string"
+                                    },
+                                    "uninstall": { 
+                                        "description": "Command which is run when the module is uninstalled",
+                                        "type": "string"
+                                    },
+                                    "reinstall": { 
+                                        "description": "Boolean whether the uninstall command should be run before the install command on an update",
+                                        "type": "boolean"
+                                    },
+                                    "show_output": {
+                                        "description": "Boolean whether the log output of the command should be printed", 
+                                        "type": "boolean"
+                                    },
+                                    "root": {
+                                        "description": "Boolean whether the command should be run with root privileges", 
+                                        "type": "boolean"
+                                    }
+                                },
+                                "required": ["install"],
+                                "additionalProperties": false                                    
+                            },
+                            {
+                                "properties": {
+                                    "type": { "enum": ["script"] },
+                                    "install": { 
+                                        "description": "Script which is executed when the module is installed",
+                                        "type": "string"
+                                    },
+                                    "uninstall": { 
+                                        "description": "Script which is executed when the module is uninstalled",
+                                        "type": "string"
+                                    },
+                                    "reinstall": { 
+                                        "description": "Boolean whether the uninstall script should be executed before the install script on an update",
+                                        "type": "boolean"
+                                    },
+                                    "show_output": {
+                                        "description": "Boolean whether the log output of the script should be printed", 
+                                        "type": "boolean"
+                                    },
+                                    "root": {
+                                        "description": "Boolean whether the script should be executed with root privileges", 
+                                        "type": "boolean"
+                                    }
+                                },
+                                "required": ["install"],
+                                "additionalProperties": false                                    
+                            },
+                            {
+                                "properties": {
+                                    "type": { "enum": ["file"] },
+                                    "file": {
+                                        "description": "Relative path to the original file which should be copied", 
+                                        "type": "string" 
+                                    },
+                                    "location": {
+                                        "description": "Absolute path to which the file should be copied to", 
+                                        "type": "string" 
+                                    },
+                                    "link": {
+                                        "description": "Boolean whether symlinks should be created instead of copying", 
+                                        "type": "boolean" 
+                                    },
+                                    "root": {
+                                        "description": "Boolean whether the file should be copied with root privileges", 
+                                        "type": "boolean" 
+                                    }
+                                },
+                                "required": ["file", "location"],
+                                "additionalProperties": false                                    
+                            },
+                            {
+                                "properties": {
+                                    "type": { "enum": ["package"] },
+                                    "names": {
+                                        "description": "Whitespace separated list of package names", 
+                                        "type": "string" 
+                                    }
+                                },
+                                "required": ["names"],
+                                "additionalProperties": false                                    
+                            }
+                        ],
+                        "required": [
+                            "type"
+                        ]
+                    }
+                },
+                "required": [
+                    "job"
+                ]
+            }
+        }
+    },
+    "required": [
+        "name",
+        "description",
+        "version",
+        "jobs"
+    ]
+}
